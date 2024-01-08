@@ -1,0 +1,29 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+
+int main()
+{   string input;
+    cout << "enter words: ";
+    getline(cin, input);
+
+    string word, result;
+
+    for (char byk : input) { // Кожен символ у input буде присвоюватися змінній byk, і блок коду в середині циклу буде виконуватися для кожного символу.
+        if (byk == ',') {
+            if (!word.empty()) { // перевіряє чи не порожній
+                result += word.back(); // повертає останній символ у рядку
+            }
+        }
+        else if (byk != ' ') {
+            word += byk;
+        }
+    }
+
+    // Обробка останнього слова
+    if (!word.empty()) {
+        result += word.back();
+    }
+    cout << "New word: " << result;
+}
