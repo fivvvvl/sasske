@@ -1,0 +1,25 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    
+    string input;
+    string need;
+    cout << "enter words: ";
+    getline(cin, input);
+    cout << "enter need word: ";
+    cin >> need;
+
+    int res= 0;
+
+    size_t pos = 0;
+    while ((pos = input.find(',')) != string::npos || (pos = input.find('.')) != string::npos ) {
+        string word = input.substr(0, pos);
+        if (word == need ) {
+            res++;
+        }
+        input.erase(0, pos + 1);
+    }
+
+    cout << "result: " << res; }
