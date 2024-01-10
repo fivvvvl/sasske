@@ -1,0 +1,32 @@
+#include <iostream>
+#include <string>
+using namespace std;
+// Функція для перестановки першої і останньої букви в слові
+string swapp(const string& word) {
+     return word.back() + word.substr(1, word.length() - 2) + word.front();
+}
+
+int main() {
+    string input;
+    cout << "enter words: ";
+    getline(cin, input);
+
+    string result;
+    string word;
+    size_t start = 0;
+    size_t end = input.find(' ');
+
+    // Розділення рядка на слова, обробка кожного слова і збір зміненого рядка
+    while (end != string::npos) {
+        word = input.substr(start, end - start);
+        result += swapp(word) + " ";
+        start = end + 1;
+        end = input.find(' ', start);
+    }
+
+    // Обробка останнього слова
+    word = input.substr(start);
+    result += swapp(word);
+
+    cout << "Result: " << result << endl;
+}
