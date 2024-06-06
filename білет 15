@@ -1,0 +1,328 @@
+#include <iostream>
+#include "Auditoria.h"
+#include "MultAud.h"
+#include <fstream>
+#include <vector>
+#include <string>
+#include <numeric> 
+#include <algorithm>
+
+using namespace std;
+
+
+int main()
+{
+    system("chcp 1251 & cls");
+    int chose;
+    vector<Auditoria*> auditorias;
+
+    ifstream inputFile("auditorias.txt");
+    if (!inputFile.is_open()) {
+        cerr << "Помилка відкриття файлу!" << endl;
+
+    }
+
+    char type;
+    while (inputFile >> type) {
+        if (type == 'A') {
+            Auditoria* a = new Auditoria;
+            inputFile >> *a;
+            auditorias.push_back(a);
+        }
+        else if (type == 'M') {
+            MultAud* m = new MultAud;
+            inputFile >> *m;
+            auditorias.push_back(m);
+        }
+    }
+
+    inputFile.close();
+
+    cout << endl;
+    cout << endl;
+    cout << "Дані з файлу зчитані та додані до контейнера!" << endl;
+   
+    do {
+        cout << "----------Меню------------" << endl;
+        cout << "1) Додати аудиторію до вектора;" << endl;
+        cout << "2) Додати мультимедійну аудиторію до вектора;" << endl;
+        cout << "3) Вивід аудиторій;" << endl;
+        cout << "4) Найбільша аудиторія;" << endl;
+        cout << "5) Загальна місткість аудиторій, розташованих на другому поверсі;" << endl;
+        cout << "6) Інші дії." << endl;
+        cout << "Ваш вибір = ";
+        cin >> chose;
+        cout << endl;
+
+        switch (chose) {
+        case 1:
+            Auditoria * a;
+            cout << "Введіть дані про аудиторію: " << endl;
+            a = new Auditoria;
+            cin >> *a;
+            auditorias.push_back(a);
+            cout << endl;
+            break;
+        case 2:
+            MultAud * m;
+            cout << "Введіть дані про мультимедійну аудиторію: " << endl;
+            m = new MultAud;
+            cin >> *m;
+            auditorias.push_back(m);
+            cout << endl;
+            break;
+
+        case 3:
+            if (auditorias.empty()) {
+                cout << "Жодної аудиторії немає!" << endl;
+                break;
+            }
+            else {
+                size_t i = 0;
+                for (const auto& aud : auditorias) {
+                    cout << "#" << i << ": " << endl;
+                    cout << *aud << endl;
+                    i++;
+                }
+                break;
+            }
+        case 4:
+            cout << endl;
+            if (auditorias.empty()) {
+                cout << "Жодної аудиторії немає!" << endl;
+
+            }
+            else {
+                auto bigest = max_element(auditorias.begin(), auditorias.end(), [](const Auditoria* a, const Auditoria* b) {
+                    return a->get_area() < b->get_area();
+                    });
+
+                cout << "Найбільша аудиторія:----------------------------------------------------------" << endl;
+                cout << **bigest;
+            }
+            break;
+        case 5:
+            int totalmists = accumulate(auditorias.begin(), auditorias.end(), 0, [](int sum, const Auditoria* c) {   //// #include <numeric>    | відбувається обчислення суми 
+                if (c->get_flor() == 2) {
+                    return sum + c->count_mists();
+                }
+            });
+                cout << "Загальна місткість аудиторій, розташованих на другому поверсі: " << totalmists << endl;
+                break;
+        
+        
+            
+        }
+    } while (chose != 12);
+
+
+
+
+    //Загальна площа усіх аудиторій:---------------------------------------------------
+    cout << endl;
+    int total_area = 0;
+    for (const auto& aud : auditorias) {
+        total_area += aud->get_area();
+    }
+    cout << "Загальна площа усіх аудиторій:--------------------------------------------------- " << endl;
+    cout << total_area << endl;
+
+
+    //Впорядкування за зростанням місткості---------------------------
+    sort(auditorias.begin(), auditorias.end(), [](const Auditoria* a, const Auditoria* b) {
+        return a->count_mists() > b->count_mists();
+        });
+
+    cout << "Впорядкування за зростанням місткості---------------------------" << std::endl;
+    cout << endl;
+    for (const auto& aud : auditorias) {
+        cout << *aud << endl;
+    }
+
+    //Поверха на яких розташовані мультимедійні аудиторії-------------------------
+    cout << "Поверха на яких розташовані мультимедійні аудиторії:" << endl;
+    for (const auto& aud : auditorias) {
+        MultAud* spec = dynamic_cast<MultAud*>(aud);
+        if (spec) {
+            cout << spec->get_flor() << endl;
+        }
+        cout << endl;
+
+    }
+
+
+
+    for (auto& aud : auditorias) {
+        delete aud;
+    }
+
+   
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+using namespace std;
+#include <string>
+
+class Auditoria
+{protected:
+	int flor;
+	int number;
+	double area;
+	int count_two;
+	int count_three;
+public:
+	Auditoria();
+	Auditoria(int FLOR, int NUMBER, double AREA, int TWO, int THREE);
+	~Auditoria();
+
+	virtual void display(ostream& os) const;
+	virtual void input(istream& is);
+	friend ostream& operator << (ostream& os, const Auditoria& au);
+	friend istream& operator>>(istream& is, Auditoria& au);
+	
+	bool operator<(const Auditoria& other) const;
+	bool operator>(const Auditoria& other) const;
+
+	int count_mists() const;
+
+	double get_area() const;
+	int get_flor() const;
+
+
+
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "Auditoria.h"
+#include <iostream>
+#include <string>
+
+
+Auditoria::Auditoria(): flor(0), number(0),area(0), count_two(0), count_three(0){}
+
+Auditoria::Auditoria(int FLOR, int NUMBER, double AREA, int TWO, int THREE) : flor(FLOR), number(NUMBER), area(AREA), count_two(TWO), count_three(THREE) {}
+
+Auditoria::~Auditoria() {}
+
+
+void Auditoria::display(ostream& os) const {
+
+	os << "Аудиторія--------------------------------- " << endl;
+	os <<"Поверх: " << flor << endl;
+	os << "Номер:" << number << endl;
+	os << "Площа: " << area << endl;
+	os << "Кількість місць: "<< count_mists() << endl;
+
+}
+
+void Auditoria::input(istream& is)
+{
+	cout << "Поверх = ";
+	is >> flor;
+	cout << "Номер = ";
+	is >> number;
+	cout << "Площя = ";
+	is >> area;
+	cout << "Кількість двохмісних парт = ";
+	is >> count_two;
+	cout << "Кількість трьохмісних парт = ";
+	is >> count_three;
+}
+
+ostream& operator << (ostream& os, const Auditoria& au)
+{
+	au.display(os);
+	return os;
+}
+
+istream& operator>>(istream& is, Auditoria& au)
+{
+	au.input(is);
+	return is;
+}
+
+bool Auditoria::operator<(const Auditoria& other) const {
+	return  area < other.area;
+}
+
+bool Auditoria::operator>(const Auditoria& other) const {
+	return area > other.area;
+}
+
+int Auditoria::count_mists() const {
+	return((count_two * 2) + (count_three * 3));
+}
+
+double Auditoria::get_area() const {
+	return area;
+}
+
+int Auditoria::get_flor() const {
+	return flor;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+#include "Auditoria.h"
+#include <string>
+
+using namespace std;
+
+class MultAud : public Auditoria
+{
+private:
+	int mult_item;
+public:
+	MultAud();
+	MultAud(int FLOR, int NUMBER, double AREA, int TWO, int THREE, int ITEM);
+	~MultAud();
+
+	void display(ostream& os) const override;
+	void input(istream& is) override;
+
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "MultAud.h"
+#include <iostream>
+#include <string>
+
+
+MultAud::MultAud(): Auditoria(), mult_item(0){}
+
+MultAud::MultAud(int FLOR, int NUMBER, double AREA, int TWO, int THREE, int ITEM) : Auditoria(FLOR, NUMBER, AREA, TWO, THREE), mult_item(ITEM){}
+
+MultAud::~MultAud(){}
+
+void MultAud::display(ostream& os) const {
+
+	os << "Мультьмедійна аудиторія--------------------------------- " << endl;
+	os << "Поверх: " << flor << endl;
+	os << "Номер:" << number << endl;
+	os << "Площа: " << area << endl;
+	os << "Кількість місць: "<< count_mists() << endl;
+	os << "Кількість мультимедійного обладнання: " << mult_item << endl;
+
+}
+
+void MultAud::input(istream& is)
+{
+	cout << "Поверх = ";
+	is >> flor;
+	cout << "Номер = ";
+	is >> number;
+	cout << "Площя = ";
+	is >> area;
+	cout << "Кількість двохмісних парт = ";
+	is >> count_two;
+	cout << "Кількість трьохмісних парт = ";
+	is >> count_three;
+	cout << "Кількість мультимедійного обладнання = ";
+	is >> mult_item;
+
+}
