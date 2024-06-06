@@ -1,0 +1,489 @@
+#include <iostream>
+#include "Flat.h"
+#include "TwoTopFlat.h"
+#include <list>
+#include <fstream>
+#include <set>
+#include <string> // завжди всюди
+#include <numeric> 
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+int main()
+{
+	system("chcp 1251 & cls");
+    int chose;
+    list<Flat*> flats;
+    set<string> special_name;
+    
+    
+
+    ifstream inputFile("flats.txt");
+    if (!inputFile.is_open()) {
+        cerr << "Помилка відкриття файлу!" << endl;
+
+    }
+
+    char type;
+    while (inputFile >> type) {
+        if (type == 'O') {
+            Flat* f = new Flat;
+            inputFile >> *f;
+            flats.push_back(f);
+        }
+        else if (type == 'D') {
+            TwoTopFlat* t = new TwoTopFlat;
+            inputFile >> *t;
+            flats.push_back(t);
+        }
+    }
+
+    inputFile.close();
+
+    cout << endl;
+    cout << endl;
+    cout << "Дані з файлу зчитані та додані до контейнера!" << endl;
+
+
+   
+    do {
+        cout << "----------Меню------------" << endl;
+        cout << "1) Додати одноповерхову квартиру до списку;" << endl;
+        cout << "2) Додати двоповерхову квартиру до списку;" << endl;
+        cout << "3) Вивід всіх квартир та повідомлення даних;" << endl;
+        cout << "4) Назви житлових комплексів без повторень;" << endl;
+        cout << "5) Загальна кількість кімнат у всіх квартирах;" << endl;
+        cout << "6) Інші дії." << endl;
+        cout << "Ваш вибір = ";
+        cin >> chose;
+        cout << endl;
+
+        switch (chose) {
+        case 1:
+            Flat * f;
+            cout << "Введіть дані про одноповерхову квартиру: " << endl;
+            f = new Flat;
+            cin >> *f;
+            flats.push_back(f);
+            cout << endl;
+            break;
+        case 2:
+            TwoTopFlat * t;
+            cout << "Введіть дані про двоповерхову квартиру: " << endl;
+            t = new TwoTopFlat;
+            cin >> *t;
+            flats.push_back(t);
+            cout << endl;
+            break;
+
+        case 3:
+            /*for (const auto& col : flats) {
+                cout << *col << endl;
+            }  */                                // без індексикації
+
+            if (flats.empty()) {
+                cout << "Жодної квартири немає!" << endl;
+                break;
+            }
+            else {
+                size_t i = 0;
+                for (const auto& flat : flats) {
+                    cout << "Квартира №" << i << ": " << endl;
+                    cout << *flat << endl;
+                    i++;
+                }
+                break;
+            }
+        case 4:
+            for (const auto& flat : flats) {
+                special_name.insert(flat->get_name_livebuild());
+            }
+            cout << "Назви житлових комплексів без повторень:" << endl;
+            for (const auto& name : special_name) {
+                cout << name << endl;
+            }
+            break;
+
+        case 5:
+
+            cout << endl;
+            int total_room = 0;
+            for (const auto& flat : flats) {
+                total_room += flat->get_countRoom();
+            }
+            cout << "Загальна кількість кімнат у всіх квартирах:--------------------------------------------------- " << endl;
+            cout << total_room << endl;
+            break;
+       
+        }    
+
+    } while (chose != 6);
+
+    //Кількість трикімнатних квартир: ------------------------------------------------------------------------
+    int three_room_flats = count_if(flats.begin(), flats.end(), [](const Flat* flat) {   //// #include <algorithm>
+        return flat->get_countRoom() == 3;
+        });
+
+    cout << "Кількість трикімнатних квартир: ------------------------------------------------------------------------" << endl;
+    cout << three_room_flats << endl;
+
+   // Впорядкування за спаданням ціни квадратного метра------------------------------------------------------  працює з list
+    flats.sort([](const Flat* a, const Flat* b) {                                             //#include <algorithm>
+        return a->square_metre() > b->square_metre();  // щоб сортувати за зростанням <
+        });
+
+    cout << "Впорядкування за спаданням ціни квадратного метра---------------------------" << endl;
+    cout << endl;
+    for (const auto& flat : flats) {
+        cout << *flat << endl;
+    }
+
+    //для вектора     спробувати чи працює в меню
+
+   /* sort(flats.begin(), flats.end(), [](const Flat* a, const Flat* b) {              //#include <algorithm>
+        return a->square_metre() > b->square_metre();
+        });
+
+    cout << "Впорядкування за спаданням ціни квадратного метра---------------------------" << std::endl;
+    cout << endl;
+    for (const auto& flat : flats) {
+        cout << *flat << endl;
+    }*/
+
+   
+    //Найбільша квартира---------------------------------------
+    cout << endl;
+    if (flats.empty()) {
+        cout << "Жодної квартири немає!" << endl;
+
+    }
+    else {
+        auto bigest = max_element(flats.begin(), flats.end(), [](const Flat* a, const Flat* b) {
+            return a->get_area() < b->get_area();
+            });
+
+        cout << "Найбільша квартира:----------------------------------------------------------" << endl;
+        cout << **bigest;
+    }
+
+
+   //загальна кількість кімнат----------------------------------------------------------------------------------- 
+
+    //int totalroom = accumulate(flats.begin(), flats.end(), 0, [](int sum, const Flat* c) {  //// #include <numeric>    | відбувається обчислення суми 
+    //    return sum + c->get_countRoom();
+    //    });
+    //cout << "Загальна кількість кімнат у всіх квартирах: " << totalroom << endl;
+
+
+
+    //Порівняння за площею------------------------------------------------------------------------------------------
+    cout << endl;
+    cout << endl;
+    int index1, index2;
+    cout << "Введіть номер першої квартири для порівняння: ";
+    cin >> index1;
+    cout << "Введіть номер другої квартири для порівняння: ";
+    cin >> index2;
+
+    auto iter1 = flats.begin();
+    auto iter2 = flats.begin();
+
+    // Знаходимо ітератори на квартири за їхніми номерами
+    advance(iter1, index1);
+    advance(iter2, index2);
+
+    if (index1 >= 0 && index1 < flats.size() && index2 >= 0 && index2 < flats.size()) {
+        if (**iter1 > **iter2) {
+            cout << "Квартира №" << index1 << " має більшу площу." << endl;
+        }
+        else if (**iter1 < **iter2) {
+            cout << "Квартира №" << index2 << " має більшу площу." << endl;
+        }
+        else {
+            cout << "Обидві квартири мають однакову площу." << endl;
+        }
+    }
+    else {
+        cout << "Не вірний номер!" << endl;
+    }
+    cout << endl;
+
+
+    //Для кожної двоповерхової квартири +1000 до ціни--------------------------------------------
+    cout << "Для кожної двоповерхової квартири +1000 до ціни--------------------------------------" << endl;
+    cout << endl;
+    for (auto& flat : flats) {
+        if (auto* tl_flat = dynamic_cast<TwoTopFlat*>(flat)) {
+            tl_flat->add_to_price(1000);
+        }
+        cout << *flat << endl;
+    }
+
+    //Додати число до ціни одноповерхової квартири(або змінити відсоток для двоповерхової квартири)-------------------------------------------------------------------
+    int num;
+    double need;
+    cout << "Додати число до ціни одноповерхової квартири(або змінити відсоток для двоповерхової квартири)" << endl;
+    cout << "Введіть номер квартири: ";
+    cin >> num;
+
+    auto iter = flats.begin();
+    advance(iter, num);
+
+    if (num >= 0 && num < flats.size()) {
+        cout << "Введіть число, яке потрібно додати число до ціни одноповерхової квартири(або змінити відсоток для двоповерхової квартири):  ";
+        cin >> need;
+        (*iter)->addPrice_OR_changepercent(need);
+    }
+    else {
+        cout << "Не вірний номер!" << endl;
+    }
+    cout << endl;
+   
+        size_t i = 0;
+        for (const auto& flat : flats) {
+            cout << "Квартира №" << i << ": " << endl;
+            cout << *flat << endl;
+            i++;
+        }
+        
+  
+
+
+    for (auto& flat : flats) {
+        delete flat;
+    }
+
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+#include <string> // завжди всюди
+using namespace std;
+
+class Flat
+{ 
+protected:
+	float area;
+	int countRoom;
+	double price;
+	string name_livebuild;
+public:
+	Flat();
+	Flat(float AREA, int COUNTROOM, double PRICE, const string& NAME);
+	~Flat();
+
+	virtual void display(ostream& os) const;
+	virtual void input(istream& is);
+	friend ostream& operator << (ostream& os, const Flat& fl);
+	friend istream& operator >> (istream& is, Flat& fl);
+
+	bool operator<(const Flat& other) const;
+	bool operator>(const Flat& other) const;
+
+	virtual double square_metre() const;
+	virtual void addPrice_OR_changepercent(double need);
+
+	virtual int get_countRoom() const;
+	string get_name_livebuild()const;
+	float get_area() const;
+	double get_price() const;
+
+
+	virtual void add_to_price(double value);
+
+	bool operator==(const Flat& other) const;
+
+
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "Flat.h"
+#include <iostream>
+#include <string> // завжди всюди
+
+Flat::Flat(): area(0), countRoom(0), price(0), name_livebuild(""){}
+
+Flat::Flat(float AREA, int COUNTROOM, double PRICE, const string& NAME) : area(AREA), countRoom(COUNTROOM), price(PRICE), name_livebuild(NAME) {}
+
+Flat::~Flat() {}
+
+void Flat::display(ostream& os) const
+{
+	os << "Одноповерхова квартира----------------------------------------------------- "<< endl;
+	os << "Житловий комплекс: " << name_livebuild << endl;
+	os << "Загальна ціна: " << price << "$\n";
+	os << "Площа: " << area << endl;
+	os << "Кількість кімнат: " << countRoom << endl;
+	os << "Ціна квадратного метра: " << square_metre() << "$\n";
+}
+
+void Flat::input(istream& is)
+{
+	cout << "Житловий комплекс = ";
+	is.ignore();
+	getline(is, name_livebuild);
+	cout << "Площя = ";
+	is >> area;
+	cout << "Кількість кімнат = ";
+	is >> countRoom;
+	cout << "Загальна ціна = ";
+	is >> price;
+}
+
+
+ostream& operator << (ostream& os, const Flat& fl)
+{
+	fl.display(os);
+	return os;
+}
+
+istream& operator>>(istream& is, Flat& fl)
+{
+	fl.input(is);
+	return is;
+}
+
+
+bool Flat::operator<(const Flat& other) const {
+	return  area < other.area;
+}
+
+bool Flat::operator>(const Flat& other) const {
+	return area > other.area;
+}
+
+
+double Flat::square_metre() const {
+	return price / area;
+}
+
+void Flat::addPrice_OR_changepercent(double need) {
+	price += need;
+}
+
+void Flat::add_to_price(double value) {
+	price += value;
+}
+
+int Flat::get_countRoom() const {
+	return countRoom;
+}
+
+string Flat::get_name_livebuild() const {
+	return name_livebuild;
+}
+
+float Flat::get_area() const {
+	return area;
+}
+
+double Flat::get_price() const {
+	return price;
+}
+
+bool Flat::operator==(const Flat& other) const {
+	return countRoom == other.countRoom;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+#include "Flat.h"
+#include <string> // завжди всюди
+using namespace std;
+
+class TwoTopFlat :
+    public Flat
+{ 
+private:
+    int roomsTwoFlor;
+    int sale;
+public:
+    TwoTopFlat();
+    TwoTopFlat(float AREA, int COUNTROOM, double PRICE, const string& NAME, int ROOMSTWO, int SALE);
+    ~TwoTopFlat();
+
+    void display(ostream& os) const override;
+    void input(istream& is) override;
+
+    int get_countRoom() const override;
+    double price_with_sale() const;
+    double square_metre_with_sale() const;
+    void addPrice_OR_changepercent(double need) override;
+
+    void set_discount(double new_discount);
+
+    void add_to_price(double value) override;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "TwoTopFlat.h"
+#include <iostream>
+
+TwoTopFlat::TwoTopFlat(): Flat(), roomsTwoFlor(0), sale(0){}
+
+TwoTopFlat::TwoTopFlat(float AREA, int COUNTROOM, double PRICE, const string& NAME, int ROOMSTWO, int SALE) : Flat(AREA, COUNTROOM, PRICE, NAME), roomsTwoFlor(ROOMSTWO), sale(SALE) {}
+
+TwoTopFlat::~TwoTopFlat() {}
+
+void TwoTopFlat::display(ostream& os) const
+{
+	os << "Двоповерхова квартира---------------------------------------" << endl;
+	os << "Житловий комплекс: " << name_livebuild << endl;
+	os << "Загальна ціна: " << price << "$\n";
+	os << "Знижка: " << sale << "%\n";
+	os << "Ціна зі знижкою: " << price_with_sale() << "$\n";
+	os << "Площа: " << area << endl;
+	os << "Кількість кімнат: " << get_countRoom() << endl;
+	os << "Ціна квадратного метра: " << square_metre() << "$\n";
+	os << "Ціна квадратного метра зі знижкою: " << square_metre_with_sale() << "$\n";
+}
+
+void TwoTopFlat::input(istream& is)
+{
+	cout << "Житловий комплекс = ";
+	is.ignore();
+	getline(is, name_livebuild);
+	cout << "Площя = ";
+	is >> area;
+	cout << "Кількість кімнат першого поверху = ";
+	is >> countRoom;
+	cout << "Загальна ціна = ";
+	is >> price;
+	cout << "Кількість кімнат другого поверху = ";
+	is >> roomsTwoFlor;
+	cout << "Знижка = ";
+	is >> sale;
+}
+
+int TwoTopFlat::get_countRoom() const {
+	return  countRoom + roomsTwoFlor;
+}
+
+double TwoTopFlat::price_with_sale() const {
+	return ((price * sale) / 100);
+}
+
+double TwoTopFlat::square_metre_with_sale() const {
+	return price_with_sale() / area;
+}
+
+void TwoTopFlat::addPrice_OR_changepercent(double need) {
+	sale = need;
+}
+
+void TwoTopFlat::set_discount(double new_discount) {
+	sale = new_discount;
+}
+
+void TwoTopFlat::add_to_price(double value) {
+	price += value;
+}
+
+
