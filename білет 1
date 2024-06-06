@@ -1,0 +1,471 @@
+#include <iostream>
+#include <string>
+#include "Collection.h"
+#include "Special.h"
+#include <deque>
+#include <set>
+#include <algorithm>
+#include <fstream>
+#include <numeric>
+
+
+using namespace std;
+
+
+int main()
+{
+    system("chcp 1251 & cls");
+    int chose;
+    deque<Collection*> collections;
+    set<string> special_genres;
+   
+    ifstream inputFile("collections.txt");
+    if (!inputFile.is_open()) {
+        cerr << "Помилка відкриття файлу!" << endl;
+        
+    }
+
+
+    do {
+        cout << "----------Меню------------" << endl;
+        cout << "1) Ввід звичайної колекції в дек;" << endl;
+        cout << "2) Ввід унікальної колекції в дек;" << endl;
+        cout << "3) Вивід всіх колекцій та повідомлення назви;" << endl;
+        cout << "4) Вивід жанрів колекцій без повторень;" << endl;
+        cout << "5) Додавання числа до кількості предметів;" << endl;
+        cout << "6) Збільшення вартості колекції (або зміна вартості для унікального предмету);" << endl;
+        cout << "7) Порівняння за вартістю;" << endl;
+        cout << "8) Зчитування з файлу;" << endl;
+        cout << "9) Три найвартісніші колекції;" << endl;
+        cout << "10) Збільшення предметів у колекціях на задане число;" << endl;
+        cout << "11) Вивід імен власників унікальних колекцій;" << endl;
+        cout << "12) Інші дії." << endl;
+        cout << "Ваш вибір = ";
+        cin >> chose;
+        cout << endl;
+
+        switch (chose) {
+        case 1:
+            Collection * c;
+            cout << "Введіть дані про колекцію: " << endl;
+            c = new Collection;
+            cin >> *c;
+            collections.push_back(c);
+            cout << endl;
+            break;
+        case 2:
+            Special * s;
+            cout << "Введіть дані про унікальну колекцію: " << endl;
+            s = new Special;
+            cin >> *s;
+            collections.push_back(s);
+            cout << endl;
+            break;
+
+        case 3:
+            /*for (const auto& col : collections) {
+                    cout << *col << endl;
+            }  */                                // без індексикації
+
+            if (collections.empty()) {
+                cout << "Жодної колекції немає!" << endl;
+                break;
+            }
+            else {
+                for (size_t i = 0; i < collections.size(); i++) {
+                    cout << "Колекція №" << i << ": " << endl;
+                    cout << *collections[i] << endl;
+                }
+                break;
+            }
+
+        case 4:
+
+            for (const auto& col : collections) {
+                special_genres.insert(col->getGenre());
+            }
+            cout << "Жанри без повторень:" << endl;
+            for (const auto& genre : special_genres) {
+                cout << genre << endl;
+            }
+            break;
+
+        case 5:
+            /* cout << "Введіть число предметів, яке потрібно додати: " << endl;
+             int e;
+             cin >> e;
+             for (const auto& col : collections) {
+                 col->addItem(e);
+
+             }
+             break;*/                            // можна ще так, але але число додасться до кожної колекції
+
+            int index, count;
+            cout << "Введи номер колекції: ";
+            cin >> index;
+            if (index >= 0 && index < collections.size()) {
+                cout << "Введіть кількість предметів, які потрібно додати: ";
+                cin >> count;
+                collections[index]->addItem(count);
+            }
+            else {
+                cout << "Номер не вірний!" << endl;
+            }
+            break;
+
+        case 6:
+            int num;
+            double value;
+            cout << "Введіть номер колекції: ";
+            cin >> num;
+            if (num >= 0 && num < collections.size()) {
+                cout << "Введіть суму на яку потрібно збільшити вартість(або суму на яку потрібно змінити вартість унікальної колекції):  ";
+                cin >> value;
+                collections[num]->change_Price(value);
+            }
+            else {
+                cout << "Не вірний номер!" << endl;
+            }
+            break;
+
+
+        case 7:
+            int index1, index2;
+            cout << "Введіть номер першої колекції для порівняння: ";
+            cin >> index1;
+            cout << "Введіть номер другої колекції для порівняння: ";
+            cin >> index2;
+            if (index1 >= 0 && index1 < collections.size() && index2 >= 0 && index2 < collections.size()) {
+                if (*collections[index1] > *collections[index2]) {
+                    cout << "Колекція №" << index1 << " має більшу вартість." << endl;
+                }
+                else if (*collections[index1] < *collections[index2]) {
+                    cout << "Колекція №" << index2 << " має більшу вартість." << endl;
+                }
+                else {
+                    cout << "Обидві колекції мають однакову вартість." << endl;
+                }
+            }
+            else {
+                cout << "Не вірний номер!" << endl;
+            }
+            cout << endl;
+            break;
+        case 8:
+            char type;
+            while (inputFile >> type) {
+                if (type == 'C') {
+                    Collection* c = new Collection;
+                    inputFile >> *c;
+                    collections.push_back(c);
+                }
+                else if (type == 'S') {
+                    Special* s = new Special;
+                    inputFile >> *s;
+                    collections.push_back(s);
+                }
+            }
+
+            inputFile.close();
+            cout << "Дані з файлу зчитані та додані до контейнера!" << endl;
+            break;
+
+        case 9:
+            cout << "Три найвартісніші колекції:" << endl;
+            cout << endl;
+            sort(collections.begin(), collections.end(), [](const Collection* a, const Collection* b) {
+                return a->Average_value() > b->Average_value();
+                });
+
+            for (int i = 0; i < min(3, static_cast<int>(collections.size())); ++i) {
+                collections[i]->display(cout);
+                cout << endl;
+            }
+            break;
+        case 10:
+            cout << "Введіть число предметів, яке потрібно додати до кожної колекції: ";
+            int e;
+            cin >> e;
+            for (const auto& col : collections) {
+                col->addItem(e);
+
+            }
+            break;
+        case 11:
+            cout << "Імена власників унікальних колекцій:" << endl;
+            for (const auto& col : collections) {
+                Special* spec = dynamic_cast<Special*>(col);       // Перевірка чи є колекція унікальною
+                if (spec) {
+                    cout << spec->get_ownerName() << endl;
+                }
+                cout << endl;
+
+            }
+            break;
+        
+        case 12: 
+            cout << "Бувайте!" << endl;
+            break;
+        
+        default: 
+            cout << "Неправильний вибір, спробуйте знову!!!" << endl;
+            break;
+        
+        }
+    } while (chose != 12);
+
+    
+
+    //Найдешевша колекція
+    cout << endl;
+    if (collections.empty()) {
+        cout << "Жодної колекції немає!" << endl;
+       
+    }
+    else {
+        auto cheapest = min_element(collections.begin(), collections.end(), [](const Collection* a, const Collection* b) {
+            return a->get_total_value() < b->get_total_value();
+            });
+
+        cout << "Найдешевша колекція:----------------------------------------------------------" << endl;
+        cout << *(*cheapest);
+    }
+
+    //Загальна кількість предметів у колекціях
+    cout << endl;
+    int total_items = 0;
+    for (const auto& col : collections) {
+        total_items += col->get_countItem();
+    }
+    cout << "Загальна кількість предметів у колекціях:--------------------------------------------------- "<< endl;
+    cout << total_items << endl;
+   
+
+    //int totalItems = accumulate(collections.begin(), collections.end(), 0, [](int sum, const Collection* c) {  //// #include <numeric>    | відбувається обчислення суми 
+    //    return sum + c->get_countItem();
+    //    });
+    //cout << "Загальна кількість предметів у колекціях: " << totalItems << endl;
+
+
+
+    
+
+    for (auto& col : collections) {
+        delete col;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+#pragma once
+#include <string>
+using namespace std;
+
+class Collection
+{ protected:
+	double total_value;
+	string genre;
+	int countItem;
+	
+public:
+	Collection();
+	Collection(double TOTAL_VALUE, const string& GENRE, int COUNT);
+	virtual ~Collection();
+
+	virtual void display(ostream& os) const;
+	virtual void input(istream& is);
+	friend ostream& operator << (ostream& os, const Collection& col);
+	friend istream& operator >> (istream& is, Collection& col);
+
+	virtual double Average_value() const;
+	void addItem(int count);
+	virtual void change_Price(double value);
+	virtual string name() const;
+	bool operator<(const Collection& other) const;
+	bool operator>(const Collection& other) const;
+	string getGenre() const;
+	int get_countItem() const;
+	double get_total_value() const;
+	
+	
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "Collection.h"
+#include <iostream>
+#include <string>
+
+
+Collection::Collection() : total_value(0), genre(""), countItem(0) {}
+
+Collection::Collection(double TOTAL_VALUE, const string& GENRE, int COUNT) : total_value(TOTAL_VALUE), genre(GENRE), countItem(COUNT) {}
+
+Collection::~Collection() {}
+
+void Collection:: display(ostream& os) const
+ {
+	 os << "Звичайна колекція: "<< name() << endl;
+	 os << "Жанр творів: " << genre << endl;
+	 os << "Загальна вартість: " << total_value << "$\n";
+	 os << "Кількість предметів: " << countItem << endl;
+	 os << "Середня вартість предмета з колекції: " << Average_value() << "$\n";
+ }
+
+ void Collection::input(istream& is)
+ {
+	 cout << "Жанр = ";
+	 is.ignore();
+	 getline(is, genre);
+	 cout << "Загальна вартість = ";
+	 is >> total_value;
+	 cout << "Кількість предметів = ";
+	 is >> countItem;
+ }
+ 
+ 
+ ostream& operator << (ostream& os, const Collection& col)
+ {
+	col.display(os);
+	 return os;
+ }
+
+ istream& operator>>(istream& is, Collection& col)
+ {
+	 col.input(is);
+	 return is;
+ }
+
+ double Collection::Average_value() const {
+	double cost = 0.0;
+	if (countItem > 0) {
+		cost = total_value / countItem;
+		return cost;
+	}
+	else { return 0; }
+ }
+
+ void Collection::addItem(int count) {
+	 countItem += count;
+ }
+
+ void Collection::change_Price(double value) {
+	 total_value += value;
+ }
+
+ string Collection::name() const {
+	 return "Ordinary сollection_____";
+ }
+
+ bool Collection::operator<(const Collection& other) const {
+	 return  total_value < other.total_value;
+ }
+
+ bool Collection::operator>(const Collection& other) const {
+	 return total_value > other.total_value;
+ }
+
+ string Collection::getGenre() const {
+	 return genre;
+ }
+
+ int Collection::get_countItem() const {
+	 return countItem;
+ }
+
+ double Collection::get_total_value() const {
+	 return total_value;
+ }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+#include "Collection.h"
+#include <string>
+using namespace std;
+
+class Special : public Collection
+{
+private:
+    string ownerName;
+    string name_uniq;
+    double priceSpecial;
+public:
+    Special();
+    Special(double TOTAL_VALUE, const string& GENRE, int COUNT, const string& OWNERNAME, const string& NAME_UNIQ, double PRICESPECIAL);
+    void display(ostream& os) const override;
+    void input(istream& is) override;
+    string name() const override;
+    double Average_value() const override;
+    void change_Price(double value) override;
+    string get_ownerName() const;
+   
+   
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////#include "Special.h"
+#include <iostream>
+
+Special::Special(): Collection(), ownerName(""), name_uniq(""), priceSpecial(0){}
+
+Special::Special(double TOTAL_VALUE, const string& GENRE, int COUNT, const string& OWNERNAME, const string& NAME_UNIQ, double PRICESPECIAL)
+	: Collection(TOTAL_VALUE, GENRE, COUNT), ownerName(OWNERNAME), name_uniq(NAME_UNIQ), priceSpecial(PRICESPECIAL){}
+
+void Special::display(ostream& os) const 
+{
+	os << "Унікальна колекція: " << name() << endl;
+	os << "Назва унікального предмета: " << name_uniq << endl;
+	os << "Ім'я власника: " << ownerName << endl;
+	os << "Ціна унікального предмета: " << priceSpecial << endl;
+	os << "Жанр твору: " << genre << endl;
+	os << "Загальна вартість: " << total_value << "$\n";
+	os << "Кількість предметів: " << countItem << endl;
+	os << "Середня вартість предмета з колекції: " << Average_value() << "$\n";
+}
+
+void Special::input(istream& is) {
+
+	cout << "Жанр = ";
+	is.ignore();
+	getline(is, genre);
+	cout << "Загальна вартість = ";
+	is >> total_value;
+	cout << "Кількість предметів = ";
+	is >> countItem;
+	cout << "Ім'я власника = ";
+	is.ignore();
+	getline(is, ownerName);
+	cout << "Назва унікального предмета = ";
+	is.ignore();
+	getline(is, name_uniq);
+	cout << "Ціна унікального предмета = ";
+	is >> priceSpecial;
+}
+
+
+
+double Special::Average_value() const  {
+	double total_items_value = total_value + priceSpecial;
+	
+	double cost = 0.0;
+	if (countItem > 0) {
+		cost = total_items_value / countItem;
+		return cost;
+	}
+	else { return 0; }
+}
+
+void Special::change_Price(double value) {
+	priceSpecial = value;
+}
+
+
+string Special::name() const {
+	return "Unique Collection___________";
+}
+
+string Special::get_ownerName() const {
+	return ownerName;
+}
